@@ -12,7 +12,6 @@ app.use(express.urlencoded({ limit: '30mb', extended: true }))
 app.use(cors());
 
 app.use('/', postRoutes);
-// app.use("/user", userRouter);
 
 const CONNECTION_URL = 'mongodb+srv://dev-ritvik:ABCD1234@cluster0.qviluhd.mongodb.net/?retryWrites=true&w=majority';
 const PORT = process.env.PORT|| 5100;

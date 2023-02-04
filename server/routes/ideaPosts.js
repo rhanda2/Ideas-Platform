@@ -3,7 +3,7 @@ import express from 'express';
 import { getIdeas, getIdeasBySearch, getIdeasByAuthor, getIdea, createIdea, likeIdea, commentIdea } from '../controllers/ideas.js';
 
 const router = express.Router();
-import auth from "../middleware/auth.js";
+// import auth from "../middleware/auth.js";
 
 router.get('/author', getIdeasByAuthor);
 router.get('/search', getIdeasBySearch);
