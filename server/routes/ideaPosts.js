@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { getIdeas, getIdeasBySearch, getIdeasByAuthor, getIdea, createIdea, likeIdea, commentIdea } from '../controllers/posts.js';
+import { getIdeas, getIdeasBySearch, getIdeasByAuthor, getIdea, createIdea, likeIdea, commentIdea } from '../controllers/ideas.js';
 
 const router = express.Router();
 import auth from "../middleware/auth.js";
