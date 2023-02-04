@@ -2,6 +2,7 @@
   "name": "mern-stack-client",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "proxy": "https://memories-project-part4.herokuapp.com/",
   "dependencies": {
     "@material-ui/core": "^4.9.10",
