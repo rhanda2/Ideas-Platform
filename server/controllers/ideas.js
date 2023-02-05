@@ -1,7 +1,9 @@
 import express from 'express';
 import mongoose from 'mongoose';
 
-import postIdeas from '../models/postIdeas.js';
+import postIdeas from '../models/ideas.js';
+// import { uploadJSONToIPFS } from '../pinata-utils/pinata.js';
+import Platform from '../Platform.json' assert { type: "json" };
 
 const router = express.Router();
 
@@ -60,9 +62,9 @@ export const getIdea = async (req, res) => {
 }
 
 export const createIdea = async (req, res) => {
-    const idea = req.body;
+    const { address, title, message, tags, ipfsHash } = req.body;
 
-    const newPostMessage = new postIdeas({ ...idea, creator: req.userId, createdAt: new Date().toISOString() })
+    const newPostMessage = new postIdeas({ ipfsHash, address: address, tags, createdAt: new Date().toISOString() })
 
     try {
         await newPostMessage.save();

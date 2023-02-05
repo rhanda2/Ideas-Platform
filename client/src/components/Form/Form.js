@@ -8,6 +8,9 @@ import ChipInput from 'material-ui-chip-input';
 import { createPost, updatePost } from '../../actions/posts';
 import useStyles from './styles';
 
+import { uploadJSONToIPFS } from '../../pinata-utils/pinata.js';
+import Platform from '../../Platform.json';
+
 const Form = ({ currentId, setCurrentId }) => {
   const [postData, setPostData] = useState({ title: '', message: '', tags: [], selectedFile: '' });
   const post = useSelector((state) => (currentId ? state.posts.posts.find((message) => message._id === currentId) : null));
@@ -15,10 +18,11 @@ const Form = ({ currentId, setCurrentId }) => {
   const classes = useStyles();
   const user = JSON.parse(localStorage.getItem('profile'));
   const history = useHistory();
+  const ethers = require('ethers')
 
   const clear = () => {
     setCurrentId(0);
-    setPostData({ title: '', message: '', tags: [], selectedFile: '' });
+    setPostData({ title: '', message: '', tags: [] });
   };
 
   useEffect(() => {
@@ -30,10 +34,11 @@ const Form = ({ currentId, setCurrentId }) => {
     e.preventDefault();
 
     if (currentId === 0) {
-      dispatch(createPost({ ...postData, name: user?.result?.name }, history));
+      const ipfsHash = await listNFT(postData)
+      dispatch(createPost({ ...postData, address: user?.result?.address, ipfsHash }, history));
       clear();
     } else {
-      dispatch(updatePost(currentId, { ...postData, name: user?.result?.name }));
+      dispatch(updatePost(currentId, { ...postData, address: user?.result?.address }));
       clear();
     }
   };
@@ -47,6 +52,53 @@ const Form = ({ currentId, setCurrentId }) => {
       </Paper>
     );
   }
+
+  async function listNFT(postData) {
+    // e.preventDefault();
+
+    //Upload data to IPFS
+    try{
+          const nftMeta = {
+            title: postData.title,
+            description: postData.message
+          }
+
+          const ipfsResponse = await uploadJSONToIPFS(nftMeta);
+          console.log(ipfsResponse)
+          console.log(Platform);
+          //After adding your Hardhat network to your metamask, this code will get providers and signers
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          console.log(window.ethereum);
+          const signer = provider.getSigner();
+          // updateMessage("Please wait.. uploading (upto 5 mins)")
+
+          //Pull the deployed contract instance
+          let contract = new ethers.Contract(Platform.address, Platform.abi, signer)
+          
+          //massage the params to be sent to the create NFT request
+          // let listingPrice = await contract.getListPrice()
+          // listingPrice = listingPrice.toString()
+
+          //actually create the NFT
+          // console.log(ipfsResponse.pinataUrl);
+          let transaction = await contract.createToken(ipfsResponse.pinataURL);
+          // let transaction = await contract.getLatestIdToListedToken();
+          console.log(transaction)
+          console.log("transaction chalaaa")
+          await transaction.wait();
+
+          alert("Successfully listed your NFT!");
+          // updateMessage("");
+          // updateFormParams({ name: '', description: '', price: ''});
+          clear();
+          window.location.replace("/")
+          return ipfsResponse.pinataHash;
+    }
+    catch(e) {
+        alert( "Upload error"+e )
+        console.log(e)
+    }
+}
 
   const handleAddChip = (tag) => {
     setPostData({ ...postData, tags: [...postData.tags, tag] });
@@ -73,7 +125,7 @@ const Form = ({ currentId, setCurrentId }) => {
             onDelete={(chip) => handleDeleteChip(chip)}
           />
         </div>
-        <div className={classes.fileInput}><FileBase type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div>
+        {/* <div className={classes.fileInput}><FileBase type="file" multiple={false} onDone={({ base64 }) => setPostData({ ...postData, selectedFile: base64 })} /></div> */}
         <Button className={classes.buttonSubmit} variant="contained" color="primary" size="large" type="submit" fullWidth>Submit</Button>
         <Button variant="contained" color="secondary" size="small" onClick={clear} fullWidth>Clear</Button>
       </form>

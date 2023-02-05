@@ -12,7 +12,7 @@ app.use(express.json({ limit: '30mb', extended: true }))
 app.use(express.urlencoded({ limit: '30mb', extended: true }))
 app.use(cors());
 
-app.use('/', ideaRoutes);
+app.use('/ideas', ideaRoutes);
 app.use('/user', userRoutes);
 
 const CONNECTION_URL = 'mongodb+srv://dev-ritvik:ABCD1234@cluster0.qviluhd.mongodb.net/?retryWrites=true&w=majority';

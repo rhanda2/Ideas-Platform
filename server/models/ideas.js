@@ -1,14 +1,11 @@
 import mongoose from 'mongoose';
 
 const ideaSchema  = {
-    title: String,
-    description: String,
-    authorName: String,
-    email: String,
-    bio: String,
-    otherInterest: String,
+    ipfsHash: String,
+    address: String,
     likes: { type: [String], default: [] },
     comments: { type: [String], default: [] },
+    tags: { type: [String], default: [] },
     createdAt: {
         type: Date,
         default: new Date(),

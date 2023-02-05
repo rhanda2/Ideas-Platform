@@ -11,8 +11,14 @@
 # production
 */build
 
+/server/artifacts
+/client/artifacts
+*/cache
+
 # misc
 .DS_Store
+*.dbg.json
+.env
 .env.local
 .env.development.local
 .env.test.local
