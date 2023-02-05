@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 
-import PostMessage from '../models/postMessage.js';
+import postIdeas from '../models/postIdeas.js';
 
 const router = express.Router();
 
@@ -12,8 +12,8 @@ export const getIdeas = async (req, res) => {
         const LIMIT = 8;
         const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
     
-        const total = await PostMessage.countDocuments({});
-        const ideas = await PostMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+        const total = await postIdeas.countDocuments({});
+        const ideas = await postIdeas.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
 
         res.json({ data: ideas, currentPage: Number(page), numberOfPages: Math.ceil(total / LIMIT)});
     } catch (error) {    
@@ -27,7 +27,7 @@ export const getIdeasBySearch = async (req, res) => {
     try {
         const title = new RegExp(searchQuery, "i");
 
-        const ideas = await PostMessage.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
+        const ideas = await postIdeas.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
 
         res.json({ data: ideas });
     } catch (error) {    
@@ -39,7 +39,7 @@ export const getIdeasByCreator = async (req, res) => {
     const { name } = req.query;
 
     try {
-        const ideas = await PostMessage.find({ name });
+        const ideas = await postIdeas.find({ name });
 
         res.json({ data: ideas });
     } catch (error) {    
@@ -51,7 +51,7 @@ export const getIdea = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const idea = await PostMessage.findById(id);
+        const idea = await postIdeas.findById(id);
         
         res.status(200).json(idea);
     } catch (error) {
@@ -62,7 +62,7 @@ export const getIdea = async (req, res) => {
 export const createIdea = async (req, res) => {
     const idea = req.body;
 
-    const newPostMessage = new PostMessage({ ...idea, creator: req.userId, createdAt: new Date().toISOString() })
+    const newPostMessage = new postIdeas({ ...idea, creator: req.userId, createdAt: new Date().toISOString() })
 
     try {
         await newPostMessage.save();
@@ -83,7 +83,7 @@ export const likeIdea = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
     
-    const idea = await PostMessage.findById(id);
+    const idea = await postIdeas.findById(id);
 
     const index = idea.likes.findIndex((id) => id ===String(req.userId));
 
@@ -93,7 +93,7 @@ export const likeIdea = async (req, res) => {
       idea.likes = post.likes.filter((id) => id !== String(req.userId));
     }
 
-    const updatedIdea = await PostMessage.findByIdAndUpdate(id, post, { new: true });
+    const updatedIdea = await postIdeas.findByIdAndUpdate(id, post, { new: true });
 
     res.status(200).json(updatedIdea);
 }
@@ -102,11 +102,11 @@ export const commentIdea = async (req, res) => {
     const { id } = req.params;
     const { value } = req.body;
 
-    const idea = await PostMessage.findById(id);
+    const idea = await postIdeas.findById(id);
 
     idea.comments.push(value);
 
-    const updatedIdea = await PostMessage.findByIdAndUpdate(id, idea, { new: true });
+    const updatedIdea = await postIdeas.findByIdAndUpdate(id, idea, { new: true });
 
     res.json(updatedIdea);
 };
