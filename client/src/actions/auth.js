@@ -26,35 +26,39 @@ export const signup = (formData, router) => async (dispatch) => {
 };
 
 export const checkSignUpSignin = async (walletAddress) => {
-  try{
+  // try{
     // const walletObj = await connectWallet();
     let userData;
     try{
-      userData = api.signIn(walletAddress);
+      // console.log("We are here now");
+      userData = await api.signIn({address: walletAddress});
+      // console.log("This is inside chcksignup", userData);
     } catch(err){
+      console.log(err);
       userData = {}
     }
+    console.log("This is inside chcksignup", userData);
     
     // userData = {
     //   result: {
     //     "fun":"ny"
     //   }
     // }
-    console.log(userData["result"]);
-    if(!userData["result"]){
+    console.log(userData.data["result"]);
+    if(userData.data.result){
       return {
-        signUp : true,
-        user: userData.result,
-        token: userData.token
+        signUp : false,
+        user: userData.data.result,
+        token: userData.data.token
       }; 
     } else {
       return {
-        signUp : false
+        signUp : true
       };
     }
-  } catch(err){
-    console.log(err);
-  }
+  // } catch(err){
+  //   console.log(err);
+  // }
   
 }
 

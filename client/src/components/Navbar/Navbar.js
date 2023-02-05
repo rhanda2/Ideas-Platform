@@ -6,6 +6,7 @@ import decode from 'jwt-decode';
 
 import * as actionType from '../../constants/actionTypes';
 import { signin, checkSignUpSignin, getCurrentWalletConnected } from '../../actions/auth';
+import { AUTH } from '../../constants/actionTypes';
 import useStyles from './styles';
 
 const Navbar = () => {
@@ -46,21 +47,20 @@ const Navbar = () => {
   const getAuth = async () => {
     if(!user?.result){
       const userData = await checkSignUpSignin(walletAddress);
-      if(!userData.result){
+      console.log(userData);
+      if(!userData.user){
+        console.log("hum yaha h");
         history.push('/auth');
-        console.log(userData);
       } else {
-        // console.log(userData);
-        // console.log("signin");
-        dispatch(signin({ address: walletAddress }, history));
-        const token = user?.token;
+        // dispatch(signin({ address: walletAddress }, history));
+        const token = userData?.token;
 
         if (token) {
           const decodedToken = decode(token);
 
           if (decodedToken.exp * 1000 < new Date().getTime()) logout();
         }
-
+        dispatch({ type: AUTH, data: { result: userData.user, token: userData.token } })
         setUser(JSON.parse(localStorage.getItem('profile')));
       }
     }

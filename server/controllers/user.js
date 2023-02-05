@@ -9,13 +9,9 @@ export const signin = async (req, res) => {
   const { address  } = req.body;
 
   try {
-    const oldUser = await UserModal.findOne({ address });
+    const oldUser = await UserModel.findOne({ walletAddress: address });
 
     if (!oldUser) return res.status(404).json({ message: "User doesn't exist" });
-
-    // const isPasswordCorrect = await bcrypt.compare(password, oldUser.password);
-
-    // if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ walletAddress: oldUser.address }, secret, { expiresIn: "1h" });
 
@@ -29,13 +25,9 @@ export const signup = async (req, res) => {
   const { email, userName, address, bio, interests } = req.body;
 
   try {
-    console.log("Here");
-    const oldUser = await UserModel.findOne({ address });
-    console.log("Here");
+    const oldUser = await UserModel.findOne({ walletAddress: address });
 
     if (oldUser) return res.status(400).json({ message: "User already exists" });
-
-    // const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await UserModel.create({ email, userName, walletAddress: address, bio, interests });
 

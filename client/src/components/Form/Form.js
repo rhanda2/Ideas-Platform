@@ -38,7 +38,7 @@ const Form = ({ currentId, setCurrentId }) => {
     }
   };
 
-  if (!user?.result?.name) {
+  if (!user?.result?.userName) {
     return (
       <Paper className={classes.paper} elevation={6}>
         <Typography variant="h6" align="center">
