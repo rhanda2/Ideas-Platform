@@ -22,20 +22,6 @@ const Post = ({ post, setCurrentId }) => {
   const userId = user?.result?._id;
   const hasLikedPost = post.likes.find((like) => like === userId);
 
-  const delay = imageUrl ? 2000 : 0;
-
-  async function imageSelect() {
-    try {
-      const res = await fetch("https://dog.ceo/api/breeds/image/random");
-      const data = await res.json();
-      // setImageUrl(data.message);
-      return data.message;
-    } catch (e) {
-      console.error("Problemino!", e);
-    }
-    
-  };
-  // imageSelect();
   const handleLike = async () => {
     dispatch(likePost(post._id));
 
@@ -73,7 +59,7 @@ const Post = ({ post, setCurrentId }) => {
         className={classes.cardAction}
         onClick={openPost}
       >
-        <CardMedia className={classes.media} image={post.selectedFile || imageSelect() } title={post.title} />
+        <CardMedia className={classes.media} image={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png' } title={post.title} />
         <div className={classes.overlay}>
           <Typography variant="h6">{post.name}</Typography>
           <Typography variant="body2">{moment(post.createdAt).fromNow()}</Typography>

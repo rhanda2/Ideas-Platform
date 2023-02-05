@@ -9,27 +9,23 @@ const router = express.Router();
 export const getPosts = async (req, res) => {
     const { page } = req.query;
     const data = req.body;
-    // console.log("req", req);
     
     try {
-        // const LIMIT = 8;
-        // const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
-        // console.log("data[0]", data);
         const ideas = await Promise.all(data.map(async url => {
             const nftDataResp = await axios.get(url);
             const nftData = { title: nftDataResp.data.title, description: nftDataResp.data.description }
             const hash = url.split("/").pop();;
             const mdbData = await IdeaMessage.findOne({ ipfsHash: hash })
+            if(!mdbData || !nftData) return null;
             const idea = { ...mdbData._doc, ...nftData};
             return idea;
         }));
-        
-        console.log(ideas);
+        const ideasFiltered = ideas.filter(a=>a);
 
         const total = ideas.length;
         // const posts = await IdeaMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
 
-        res.json({ data: ideas, });
+        res.json({ data: ideasFiltered, });
     } catch (error) {    
         res.status(404).json({ message: error.message });
     }
@@ -74,16 +70,17 @@ export const getPost = async (req, res) => {
 }
 
 export const createPost = async (req, res) => {
-    const post = req.body;
+    const { address, title, message, tags, ipfsHash } = req.body;
 
-    const newIdeaMessage = new IdeaMessage({ ...post, creator: req.userId, createdAt: new Date().toISOString() })
-
+    const newIdeaMessage = new IdeaMessage({ ipfsHash, address: address, tags, createdAt: new Date().toISOString() })
+    // console.log("creating..... ", newIdeaMessage)
     try {
         await newIdeaMessage.save();
 
         res.status(201).json(newIdeaMessage);
     } catch (error) {
         res.status(409).json({ message: error.message });
+        console.log(error)
     }
 }
 

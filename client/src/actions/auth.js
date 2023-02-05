@@ -30,22 +30,12 @@ export const checkSignUpSignin = async (walletAddress) => {
     // const walletObj = await connectWallet();
     let userData;
     try{
-      // console.log("We are here now");
       userData = await api.signIn({address: walletAddress});
-      // console.log("This is inside chcksignup", userData);
     } catch(err){
       console.log(err);
       userData = {}
     }
-    console.log("This is inside chcksignup", userData);
-    
-    // userData = {
-    //   result: {
-    //     "fun":"ny"
-    //   }
-    // }
-    console.log(userData.data["result"]);
-    if(userData.data.result){
+    if(userData?.data?.result){
       return {
         signUp : false,
         user: userData.data.result,
