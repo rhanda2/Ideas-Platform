@@ -7,6 +7,8 @@ import useStyles from './styles';
 
 const Posts = ({ setCurrentId }) => {
   const { posts, isLoading } = useSelector((state) => state.posts);
+  // console.log("Posts isLoading", isLoading);
+  // isLoading = false;
   const classes = useStyles();
 
   if (!posts.length && !isLoading) return 'No posts';
@@ -17,6 +19,7 @@ const Posts = ({ setCurrentId }) => {
         {posts?.map((post) => (
           <Grid key={post._id} item xs={12} sm={12} md={6} lg={3}>
             <Post post={post} setCurrentId={setCurrentId} />
+            <p>Hello</p>{console.log("This change happened")}
           </Grid>
         ))}
       </Grid>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardActions, CardContent, CardMedia, Button, Typography, ButtonBase } from '@material-ui/core';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -14,6 +14,7 @@ import useStyles from './styles';
 const Post = ({ post, setCurrentId }) => {
   const user = JSON.parse(localStorage.getItem('profile'));
   const [likes, setLikes] = useState(post?.likes);
+  const [imageUrl, setImageUrl] = useState("");
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
@@ -21,6 +22,20 @@ const Post = ({ post, setCurrentId }) => {
   const userId = user?.result?._id;
   const hasLikedPost = post.likes.find((like) => like === userId);
 
+  const delay = imageUrl ? 2000 : 0;
+
+  async function imageSelect() {
+    try {
+      const res = await fetch("https://dog.ceo/api/breeds/image/random");
+      const data = await res.json();
+      // setImageUrl(data.message);
+      return data.message;
+    } catch (e) {
+      console.error("Problemino!", e);
+    }
+    
+  };
+  // imageSelect();
   const handleLike = async () => {
     dispatch(likePost(post._id));
 
@@ -58,12 +73,12 @@ const Post = ({ post, setCurrentId }) => {
         className={classes.cardAction}
         onClick={openPost}
       >
-        <CardMedia className={classes.media} image={post.selectedFile || 'https://user-images.githubusercontent.com/194400/49531010-48dad180-f8b1-11e8-8d89-1e61320e1d82.png'} title={post.title} />
+        <CardMedia className={classes.media} image={post.selectedFile || imageSelect() } title={post.title} />
         <div className={classes.overlay}>
           <Typography variant="h6">{post.name}</Typography>
           <Typography variant="body2">{moment(post.createdAt).fromNow()}</Typography>
         </div>
-        {(user?.result?._id === post?.creator) && (
+        {/* {(user?.result?._id === post?.creator) && (
         <div className={classes.overlay2} name="edit">
           <Button
             onClick={(e) => {
@@ -76,16 +91,16 @@ const Post = ({ post, setCurrentId }) => {
             <MoreHorizIcon fontSize="default" />
           </Button>
         </div>
-        )}
+        )} */}
         <div className={classes.details}>
           <Typography variant="body2" color="textSecondary" component="h2">{post.tags.map((tag) => `#${tag} `)}</Typography>
         </div>
         <Typography className={classes.title} gutterBottom variant="h5" component="h2">{post.title}</Typography>
         <CardContent>
-          <Typography variant="body2" color="textSecondary" component="p">{post.message.split(' ').splice(0, 20).join(' ')}...</Typography>
+          <Typography variant="body2" color="textSecondary" component="p">{post.description}</Typography>
         </CardContent>
       </ButtonBase>
-      <CardActions className={classes.cardActions}>
+      {/* <CardActions className={classes.cardActions}>
         <Button size="small" color="primary" disabled={!user?.result} onClick={handleLike}>
           <Likes />
         </Button>
@@ -94,7 +109,7 @@ const Post = ({ post, setCurrentId }) => {
             <DeleteIcon fontSize="small" /> &nbsp; Delete
           </Button>
         )}
-      </CardActions>
+      </CardActions> */}
     </Card>
   );
 };

@@ -9,7 +9,8 @@ import CommentSection from './CommentSection';
 import useStyles from './styles';
 
 const Post = () => {
-  const { post, posts, isLoading } = useSelector((state) => state.posts);
+  const { post, posts, isLoading } = useSelector((state) => state.posts );
+  // console.log("isLoading", isLoading);
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
@@ -50,14 +51,14 @@ const Post = () => {
             </Link>
           ))}
           </Typography>
-          <Typography gutterBottom variant="body1" component="p">{post.message}</Typography>
+          <Typography gutterBottom variant="body1" component="p">{post.description}</Typography>
           <Typography variant="h6">
             Created by:
-            <Link to={`/creators/${post.name}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
+            {/* <Link to={`/creators/${post.name}`} style={{ textDecoration: 'none', color: '#3f51b5' }}>
               {` ${post.name}`}
-            </Link>
+            </Link> */}
           </Typography>
-          <Typography variant="body1">{moment(post.createdAt).fromNow()}</Typography>
+          {/* <Typography variant="body1">{moment(post.createdAt).fromNow()}</Typography> */}
           <Divider style={{ margin: '20px 0' }} />
           <Typography variant="body1"><strong>Realtime Chat - coming soon!</strong></Typography>
           <Divider style={{ margin: '20px 0' }} />
