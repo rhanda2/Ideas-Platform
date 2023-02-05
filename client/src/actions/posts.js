@@ -13,10 +13,11 @@ export const getPost = (id) => async (dispatch) => {
   }
 };
 
-export const getPosts = (page) => async (dispatch) => {
+export const getPosts = (page, dataToken) => async (dispatch) => {
   try {
     dispatch({ type: START_LOADING });
-    const { data: { data, currentPage, numberOfPages } } = await api.fetchPosts(page);
+    const { data: { data, currentPage, numberOfPages } } = await api.fetchPosts(page, dataToken);
+    console.log(data);
 
     dispatch({ type: FETCH_ALL, payload: { data, currentPage, numberOfPages } });
     dispatch({ type: END_LOADING });

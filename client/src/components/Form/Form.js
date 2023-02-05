@@ -35,10 +35,10 @@ const Form = ({ currentId, setCurrentId }) => {
 
     if (currentId === 0) {
       const ipfsHash = await listNFT(postData)
-      dispatch(createPost({ ...postData, address: user?.result?.address, ipfsHash }, history));
+      dispatch(createPost({ ...postData, address: user?.result?.walletAddress, ipfsHash }, history));
       clear();
     } else {
-      dispatch(updatePost(currentId, { ...postData, address: user?.result?.address }));
+      dispatch(updatePost(currentId, { ...postData, address: user?.result?.walletAddress }));
       clear();
     }
   };
@@ -64,8 +64,6 @@ const Form = ({ currentId, setCurrentId }) => {
           }
 
           const ipfsResponse = await uploadJSONToIPFS(nftMeta);
-          console.log(ipfsResponse)
-          console.log(Platform);
           //After adding your Hardhat network to your metamask, this code will get providers and signers
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           console.log(window.ethereum);
@@ -82,14 +80,9 @@ const Form = ({ currentId, setCurrentId }) => {
           //actually create the NFT
           // console.log(ipfsResponse.pinataUrl);
           let transaction = await contract.createToken(ipfsResponse.pinataURL);
-          // let transaction = await contract.getLatestIdToListedToken();
-          console.log(transaction)
-          console.log("transaction chalaaa")
           await transaction.wait();
-
+          console.log("user", user.result);
           alert("Successfully listed your NFT!");
-          // updateMessage("");
-          // updateFormParams({ name: '', description: '', price: ''});
           clear();
           window.location.replace("/")
           return ipfsResponse.pinataHash;

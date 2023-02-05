@@ -1,82 +1,116 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import axios from 'axios';
 
-import postIdeas from '../models/ideas.js';
-// import { uploadJSONToIPFS } from '../pinata-utils/pinata.js';
-import Platform from '../Platform.json' assert { type: "json" };
+import IdeaMessage from '../models/ideas.js';
 
 const router = express.Router();
 
-export const getIdeas = async (req, res) => {
+export const getPosts = async (req, res) => {
     const { page } = req.query;
+    const data = req.body;
+    // console.log("req", req);
     
     try {
-        const LIMIT = 8;
-        const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
-    
-        const total = await postIdeas.countDocuments({});
-        const ideas = await postIdeas.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+        // const LIMIT = 8;
+        // const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
+        // console.log("data[0]", data);
+        const ideas = await Promise.all(data.map(async url => {
+            const nftDataResp = await axios.get(url);
+            const nftData = { title: nftDataResp.data.title, description: nftDataResp.data.description }
+            const hash = url.split("/").pop();;
+            const mdbData = await IdeaMessage.findOne({ ipfsHash: hash })
+            const idea = { ...mdbData._doc, ...nftData};
+            return idea;
+        }));
+        
+        console.log(ideas);
 
-        res.json({ data: ideas, currentPage: Number(page), numberOfPages: Math.ceil(total / LIMIT)});
+        const total = ideas.length;
+        // const posts = await IdeaMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+
+        res.json({ data: ideas, });
     } catch (error) {    
         res.status(404).json({ message: error.message });
     }
 }
 
-export const getIdeasBySearch = async (req, res) => {
+export const getPostsBySearch = async (req, res) => {
     const { searchQuery, tags } = req.query;
 
     try {
         const title = new RegExp(searchQuery, "i");
 
-        const ideas = await postIdeas.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
+        const posts = await IdeaMessage.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
 
-        res.json({ data: ideas });
+        res.json({ data: posts });
     } catch (error) {    
         res.status(404).json({ message: error.message });
     }
 }
 
-export const getIdeasByCreator = async (req, res) => {
+export const getPostsByCreator = async (req, res) => {
     const { name } = req.query;
 
     try {
-        const ideas = await postIdeas.find({ name });
+        const posts = await IdeaMessage.find({ name });
 
-        res.json({ data: ideas });
+        res.json({ data: posts });
     } catch (error) {    
         res.status(404).json({ message: error.message });
     }
 }
 
-export const getIdea = async (req, res) => { 
+export const getPost = async (req, res) => { 
     const { id } = req.params;
 
     try {
-        const idea = await postIdeas.findById(id);
+        const post = await IdeaMessage.findById(id);
         
-        res.status(200).json(idea);
+        res.status(200).json(post);
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 }
 
-export const createIdea = async (req, res) => {
-    const { address, title, message, tags, ipfsHash } = req.body;
+export const createPost = async (req, res) => {
+    const post = req.body;
 
-    const newPostMessage = new postIdeas({ ipfsHash, address: address, tags, createdAt: new Date().toISOString() })
+    const newIdeaMessage = new IdeaMessage({ ...post, creator: req.userId, createdAt: new Date().toISOString() })
 
     try {
-        await newPostMessage.save();
+        await newIdeaMessage.save();
 
-        res.status(201).json(newPostMessage);
+        res.status(201).json(newIdeaMessage);
     } catch (error) {
         res.status(409).json({ message: error.message });
     }
 }
 
+export const updatePost = async (req, res) => {
+    const { id } = req.params;
+    const { title, message, creator, selectedFile, tags } = req.body;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
 
-export const likeIdea = async (req, res) => {
+    const updatedPost = { creator, title, message, tags, selectedFile, _id: id };
+
+    await IdeaMessage.findByIdAndUpdate(id, updatedPost, { new: true });
+
+    res.json(updatedPost);
+}
+
+export const deletePost = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
+
+    await IdeaMessage.findByIdAndRemove(id);
+
+    res.json({ message: "Post deleted successfully." });
+}
+
+export const likePost = async (req, res) => {
     const { id } = req.params;
 
     if (!req.userId) {
@@ -85,32 +119,32 @@ export const likeIdea = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
     
-    const idea = await postIdeas.findById(id);
+    const post = await IdeaMessage.findById(id);
 
-    const index = idea.likes.findIndex((id) => id ===String(req.userId));
+    const index = post.likes.findIndex((id) => id ===String(req.userId));
 
     if (index === -1) {
-      idea.likes.push(req.userId);
+      post.likes.push(req.userId);
     } else {
-      idea.likes = post.likes.filter((id) => id !== String(req.userId));
+      post.likes = post.likes.filter((id) => id !== String(req.userId));
     }
 
-    const updatedIdea = await postIdeas.findByIdAndUpdate(id, post, { new: true });
+    const updatedPost = await IdeaMessage.findByIdAndUpdate(id, post, { new: true });
 
-    res.status(200).json(updatedIdea);
+    res.status(200).json(updatedPost);
 }
 
-export const commentIdea = async (req, res) => {
+export const commentPost = async (req, res) => {
     const { id } = req.params;
     const { value } = req.body;
 
-    const idea = await postIdeas.findById(id);
+    const post = await IdeaMessage.findById(id);
 
-    idea.comments.push(value);
+    post.comments.push(value);
 
-    const updatedIdea = await postIdeas.findByIdAndUpdate(id, idea, { new: true });
+    const updatedPost = await IdeaMessage.findByIdAndUpdate(id, post, { new: true });
 
-    res.json(updatedIdea);
+    res.json(updatedPost);
 };
 
 export default router;

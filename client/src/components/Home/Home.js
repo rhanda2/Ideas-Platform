@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Grow, Grid, AppBar, TextField, Button, Paper } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -9,6 +9,7 @@ import Posts from '../Posts/Posts';
 import Form from '../Form/Form';
 import Pagination from '../Pagination';
 import useStyles from './styles';
+import Platform from '../../Platform.json';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -18,28 +19,48 @@ const Home = () => {
   const query = useQuery();
   const page = query.get('page') || 1;
   const searchQuery = query.get('searchQuery');
+  const ethers = require('ethers')
 
   const [currentId, setCurrentId] = useState(0);
+  const [dataToken, setToken] = useState([]);
   const dispatch = useDispatch();
+  useEffect(()=>{
+    async function fetchPosts() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
 
-  const [search, setSearch] = useState('');
+      let contract = new ethers.Contract(Platform.address, Platform.abi, signer);
+      
+      let transactions = await contract.getAllNFTs();
+      console.log("transactions", transactions);
+      const items = await Promise.all(transactions.map(async i => {
+        const tokenURI = await contract.tokenURI(i.tokenId);
+        return tokenURI;
+      }))
+      setToken(items);
+      console.log("items", items);
+      // return transaction
+    }
+    fetchPosts();
+  }, [])
+  // const [search, setSearch] = useState('');
   const [tags, setTags] = useState([]);
   const history = useHistory();
 
-  const searchPost = () => {
-    if (search.trim() || tags) {
-      dispatch(getPostsBySearch({ search, tags: tags.join(',') }));
-      history.push(`/posts/search?searchQuery=${search || 'none'}&tags=${tags.join(',')}`);
-    } else {
-      history.push('/');
-    }
-  };
+  // const searchPost = () => {
+  //   if (search.trim() || tags) {
+  //     dispatch(getPostsBySearch({ search, tags: tags.join(',') }));
+  //     history.push(`/posts/search?searchQuery=${search || 'none'}&tags=${tags.join(',')}`);
+  //   } else {
+  //     history.push('/');
+  //   }
+  // };
 
-  const handleKeyPress = (e) => {
-    if (e.keyCode === 13) {
-      searchPost();
-    }
-  };
+  // const handleKeyPress = (e) => {
+  //   if (e.keyCode === 13) {
+  //     searchPost();
+  //   }
+  // };
 
   const handleAddChip = (tag) => setTags([...tags, tag]);
 
@@ -53,7 +74,7 @@ const Home = () => {
             <Posts setCurrentId={setCurrentId} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <AppBar className={classes.appBarSearch} position="static" color="inherit">
+            {/* <AppBar className={classes.appBarSearch} position="static" color="inherit">
               <TextField onKeyDown={handleKeyPress} name="search" variant="outlined" label="Search Memories" fullWidth value={search} onChange={(e) => setSearch(e.target.value)} />
               <ChipInput
                 style={{ margin: '10px 0' }}
@@ -64,11 +85,11 @@ const Home = () => {
                 variant="outlined"
               />
               <Button onClick={searchPost} className={classes.searchButton} variant="contained" color="primary">Search</Button>
-            </AppBar>
+            </AppBar> */}
             <Form currentId={currentId} setCurrentId={setCurrentId} />
             {(!searchQuery && !tags.length) && (
               <Paper className={classes.pagination} elevation={6}>
-                <Pagination page={page} />
+                <Pagination page={page} data={dataToken} />
               </Paper>
             )}
           </Grid>

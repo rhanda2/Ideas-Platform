@@ -16,8 +16,8 @@ const App = () => {
       <Container maxWidth="xl">
         <Navbar />
         <Switch>
-          <Route path="/posts" exact component={() => <Redirect to="/" />} />
-          <Route path="/" exact component={Home} />
+          <Route path="/" exact component={() => <Redirect to="/posts" />} />
+          <Route path="/posts" exact component={Home} />
           <Route path="/posts/search" exact component={Home} />
           <Route path="/posts/:id" exact component={PostDetails} />
           {/* <Route path={['/creators/:name', '/tags/:name']} component={CreatorOrTag} /> */}
